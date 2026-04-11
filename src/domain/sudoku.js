@@ -1,8 +1,7 @@
 function isValidSet(numbers) {
     const set = new Set(numbers);
     if (set.has(0)) return false;
-    if (set.size !== 9) return false;
-    return true;
+    return set.size === 9
 }
 
 /**
@@ -18,9 +17,13 @@ class Sudoku {
      * 构造函数
      * @param {number[][]} grid - 初始二维数组
      */
-    constructor(grid) {
+    constructor(grid, fixed=null) {
         this.#grid = this.deepCopy(grid);
-        this.#fixed = this.deepCopy(grid);
+        if(fixed){
+            this.#fixed = this.deepCopy(fixed);
+        }else{
+            this.#fixed = this.deepCopy(grid);
+        }
     }
 
     /**
@@ -35,7 +38,7 @@ class Sudoku {
      * 判断是否是固定数字
      */
     isFixed(row, col){
-        return this.#fixed[row][col]!=0
+        return this.#fixed[row][col]!==0
     }
 
     /**
@@ -73,9 +76,8 @@ class Sudoku {
      * @returns {Sudoku}
      */
     clone() {
-        const copy = new Sudoku(this.getGrid())
-        copy.#fixed = this.deepCopy(this.#fixed)
-        return copy;
+        const newSudoku = new Sudoku(this.#grid, this.#fixed);
+        return newSudoku;
     }
 
     /**
@@ -83,7 +85,10 @@ class Sudoku {
      * @returns {number[][]}
      */
     toJSON() {
-        return this.getGrid();
+        return {
+            grid: this.deepCopy(this.#grid),
+            fixed: this.deepCopy(this.#fixed)
+        };
     }
 
     /**

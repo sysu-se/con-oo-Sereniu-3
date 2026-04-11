@@ -11,7 +11,6 @@ class Game {
     #history;
     // 重做快照栈，用于重做操作
     #future;
-
     /**
      * 构造函数
      * @param {Sudoku} sudoku - 初始数独盘面
@@ -27,8 +26,7 @@ class Game {
      * @returns {Sudoku} 当前数独对象
      */
     getSudoku() {
-        const grid = this.#current.getGrid();
-        return new Sudoku(grid)
+        return this.#current.clone();
     }
 
     /**
@@ -94,14 +92,19 @@ class Game {
         };
     }
 
+    static fromJSON(json) {
+        const data = typeof json === 'string' ? JSON.parse(json) : json;
+        const currentSudoku = new Sudoku(data.sudoku.grid, data.sudoku.fixed);
+        const game = new Game(currentSudoku);
+        game.#history = data.history.map(h => new Sudoku(h.grid, h.fixed));
+        game.#future = data.future.map(f => new Sudoku(f.grid, f.fixed));
+        return game;
+    }
+
     isFixed(row, col) {
         return this.#current.isFixed(row, col);
     }
 
-    restoreHistory(history, future) {
-        this.#history = history;
-        this.#future = future;
-    }
 
     isWon(){
         return this.#current.isWon();

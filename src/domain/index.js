@@ -17,7 +17,7 @@ export function createSudoku(input){
  */
 export function createSudokuFromJSON(json){
     const data = typeof json === 'string' ? JSON.parse(json) : json;
-    return new Sudoku(data);
+    return new Sudoku(data.grid, data.fixed);
 }
 
 /**
@@ -36,13 +36,5 @@ export function createGame({ sudoku }){
  * @returns {Game} 反序列化后的游戏对象
  */
 export function createGameFromJSON(json){
-    const data = typeof json === 'string' ? JSON.parse(json) : json;
-    const sudoku = createSudokuFromJSON(data.sudoku);
-
-    const game = new Game(sudoku);
-    game.restoreHistory(
-        data.history.map(h => createSudokuFromJSON(h)),
-        data.future.map(f => createSudokuFromJSON(f))
-    )
-    return game;
+    return Game.fromJSON(json);
 }

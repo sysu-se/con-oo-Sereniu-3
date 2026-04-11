@@ -1,54 +1,54 @@
 <script>
-	import { onMount } from 'svelte';
-	import { validateSencode } from '@sudoku/sencode';
-	import game from '@sudoku/game';
-	import { modal } from '@sudoku/stores/modal';
-	import { gameWon } from '@sudoku/stores/game';
-	import Board from './components/Board/index.svelte';
-	import Controls from './components/Controls/index.svelte';
-	import Header from './components/Header/index.svelte';
-	import Modal from './components/Modal/index.svelte';
+    import { onMount } from 'svelte';
+    import { createGameStore } from './stores/gameStore.js';
+    import { modal } from '@sudoku/stores/modal';
+    import Board from './components/Board/index.svelte';
+    import Controls from './components/Controls/index.svelte';
+    import Header from './components/Header/index.svelte';
+    import Modal from './components/Modal/index.svelte';
 
-	gameWon.subscribe(won => {
-		if (won) {
-			game.pause();
-			modal.show('gameover');
-		}
-	});
+    const defaultInitialGrid = [
+        [5, 3, 0, 0, 7, 0, 0, 0, 0],
+        [6, 0, 0, 1, 9, 5, 0, 0, 0],
+        [0, 9, 8, 0, 0, 0, 0, 6, 0],
+        [8, 0, 0, 0, 6, 0, 0, 0, 3],
+        [4, 0, 0, 8, 0, 3, 0, 0, 1],
+        [7, 0, 0, 0, 2, 0, 0, 0, 6],
+        [0, 6, 0, 0, 0, 0, 2, 8, 0],
+        [0, 0, 0, 4, 1, 9, 0, 0, 5],
+        [0, 0, 0, 0, 8, 0, 0, 7, 9]
+    ];
 
-	onMount(() => {
-		let hash = location.hash;
+    let gameStore = createGameStore(defaultInitialGrid);
+    $: gameState = $gameStore;
 
-		if (hash.startsWith('#')) {
-			hash = hash.slice(1);
-		}
+    $: if (gameState.won) {
+        modal.show('gameover');
+    }
 
-		let sencode;
-		if (validateSencode(hash)) {
-			sencode = hash;
-		}
-
-		modal.show('welcome', { onHide: game.resume, sencode });
-	});
+    onMount(() => {
+        let hash = location.hash.slice(1);
+        if (hash) {
+            try {
+                const json = JSON.parse(atob(hash));
+                gameStore.loadFromJSON(json);
+            } catch(e) {
+                console.warn('Failed to load from hash', e);
+            }
+        }
+        modal.show('welcome');
+    });
 </script>
 
-<!-- Timer, Menu, etc. -->
-<header>
-	<Header />
-</header>
-
-<!-- Sudoku Field -->
+<Header />
 <section>
-	<Board />
+    <Board gameStore={gameStore} />
 </section>
-
-<!-- Keyboard -->
 <footer>
-	<Controls />
+    <Controls gameStore={gameStore} />
 </footer>
-
 <Modal />
 
 <style global>
-	@import "./styles/global.css";
+    @import "./styles/global.css";
 </style>
